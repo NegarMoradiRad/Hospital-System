@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fa">
+    <head>
+    <title>فرم ارسال رزومه</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="/static/style.css"/>
+    </head>
+    <body dir="rtl">
+      <div>
+  <ul>
+     <span>فرم ارسال رزومه به:</span>
+    {% for name in par %}
+      <li>{{ name }}</li>
+    {% endfor %}
+  </ul>
+    <form method="post" action="{{url_for('form')}}" name="resume" enctype="multipart/form-data">
+      {% for name in par %}
+        <input type="hidden" name="hospitals_name" value="{{ name }}">
+    {% endfor %}
+        <label for="name">نام:</label>
+        <input type="text" id="name" name="fname"><hr>
+        <label for="fname">نام خانوادگی:</label>
+        <input type="text" id="fname" name="lname"><hr>
+        <label for="image">عکس پرسنلی:</label>
+        <input type="file" id="image" name="image"><hr>
+        <label for="resume">لطفا رزومه خود را بارگذاری کنید</label>
+        <input type="file" id="resume" name="file"><hr>
+        <p>پوزیشن کاری خود را انتخاب کنید</p>
+        <select name="position" id="positionId">
+            <option value="دکتر">دکتر</option>
+            <option value="پرستار">پرستار</option>
+            <option value="تکنیسین">تکنیسین</option>
+        </select><hr>
+        <input type="radio" id="male" name="gender" value="مرد">
+        <label for="male">زن</label>
+        <input type="radio" id="fmale" name="gender" value="زن">
+        <label for="fmale">مرد</label><hr>
+        <input type="submit" value="ارسال">
+    </form>
+      {% if send %}
+    <p style="color: green;">با موفقیت ارسال شد</p>
+{% endif %}
+  {% if errors %}
+            <ul class="error_box">
+                {% for error in errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+</div>
+    </body>
+</html>

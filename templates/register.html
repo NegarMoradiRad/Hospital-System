@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>ثبت نام در سایت</title>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="/static/style.css">
+    </head>
+    <body>
+       <div>
+        <form action="{{url_for('registerpage')}}">
+            <label for="fullname">نام و نام خانوداگی</label>
+            <input type="text" id="fullname" name="fullname">
+            <label for="email">ایمیل خود را وارد کنید</label>
+            <input type="email" id="email" name="email">
+            <input type="submit" value="ثبت نام">
+        </form>
+       </div>
+    </body>
+</html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>ارسال رزومه بیمارستانی</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="/static/style.css"/>
+  </head>
+  <body>
+<div >
+  <h1 style="text-align: center;">سیستم ارسال و درخواست ثبت رزومه و بیمارستان</h1>
+    <form  method="post" action="{{url_for('select')}}">
+        <select id="hospitals" name="HospitalsName" multiple>
+          <option value="بیمارستان طالقانی">بیمارستان طالقانی</option>
+          <option value="بیمارستان لاله">بیمارستان لاله</option>
+          <option value="بیمارستان ابن سینا">بیمارستان ابن سینا</option>
+          <option value="بیمارستان رازی">بیمارستان رازی</option>
+          {%if hospitals%}
+          {%for hos in hospitals%}
+          <option value="{{hos}}">{{hos}}</option>
+          {%endfor%}
+          {%endif%}
+        </select>
+        <input type="submit" value="ارسال رزومه"/>
+    </form>
+    <form action="{{url_for('AddHospital')}}" method="get">
+      <input type="submit" value="افزودن بیمارستان">
+      {%if error%}
+      <ul class="error_box">
+        {%for error in error%}
+        <li>{{error}}</li>
+        {%endfor%}
+      </ul>
+      {%endif%}
+    </form>
+    <form action="{{url_for('register')}}" method="get">
+      <input type="submit" value="ثبت نام در سایت">
+    </form>
+</div>
+  </body>
+</html>
