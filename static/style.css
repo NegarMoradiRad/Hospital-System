@@ -1,9 +1,11 @@
 body {
   display: flex;
-  justify-content: center; /* وسط چین افقی */
-  align-items: flex-start; /* بالای صفحه */
-  height: 100vh; /* ارتفاع کل صفحه */
-  margin: 0; /* حذف مارجین پیشفرض */
+  flex-direction: column;
+  align-items: center;
+  margin: 0;
+  font-family: sans-serif;
+  background-color: #f9f9f9;
+  direction: rtl;
 }
 
 div {
@@ -11,8 +13,7 @@ div {
   width: 600px;
   border: 15px solid #4c91af;
   padding: 50px;
-  margin-top: 0; /* مطمئن شو فاصله بالا نداره */
-  /* حذف سایر margin */
+  margin-top: 0;
 }
 
 
@@ -53,7 +54,7 @@ input[type=submit] {
   cursor: pointer;
 }
 
-input[type=text] {
+input {
   width: 100%;
   padding: 12px 20px;
   margin: 8px 0;
@@ -103,22 +104,21 @@ span{
   color: #232424;
 }
 
-input[type=number]{
-  width: 100%;
-  padding: 12px 20px;
+._box {
+  width: 93%;
+  background-color: #27d352;
+  color: white;
+  padding: 14px 20px;
   margin: 8px 0;
-  display: inline-block;
-  border: 1px solid #ccc;
+  border: none;
   border-radius: 4px;
-  box-sizing: border-box;
+  cursor: pointer;
 }
 
-input[type=email]{
-  width: 100%;
-  padding: 12px 20px;
-  margin: 8px 0;
-  display: inline-block;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-sizing: border-box;
+header{
+    background-color: lightgrey;
+  width: 600px;
+  border: 15px solid #4c91af;
+  padding: 50px;
+  margin-top: 0; /
 }

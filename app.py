@@ -7,16 +7,13 @@ db=client["hospitals_resumes"]
 collection1=db['hospitals_selected']
 collection2=db["resumes"]
 collection3=db["hospitals"]
-collection4=db["userip"]
+collection4=db["users"]
 
 app=Flask(__name__)
 
 upload_folder = "static/uplouds" 
 app.config["UPLOAD_FOLDER"] = upload_folder
 
-hospitals_name=[]
-hospitals_name_slug=[]
-query_params=[]
 
 def is_safe_image(filename):
    allowed=["png","jpg"]
@@ -39,32 +36,16 @@ def homepage():
 
 @app.route("/select", methods=["POST"])
 def select():
-    global hospitals_name
-    global hospitals_name_slug
-    global query_params
     hospitals_name = request.form.getlist("HospitalsName")     
-    hospitals_name_slug=[name.replace(' ', '-') for name in hospitals_name]
-    query_params = "&".join([f"name={name}" for name in hospitals_name_slug])
-    document1 = {
-        "hospitals_name": hospitals_name,
-        'sluge_name':hospitals_name_slug
-    }
-
-    collection1.insert_one(document1)
     error=[]
+
     if not hospitals_name:
        error.append("لطفا بیمارستان مورد نظر برای ارسال رزومه را انتخاب کنید")
     if error:
        return render_template("index.html", error=error)
-    tag=1
-    for i in collection4.find({}, {"_id": 0, "ip": 1}):
-       if request.remote_addr in collection4.find({}, {"_id": 0, "ip": 1}):
-        tag=1
-    if tag != 1:
-       return redirect('/registerpage')
-    else:
-      return redirect('/loginpage')
-    #return redirect(f"/form?{query_params}")
+    
+    return redirect('/registerpage')
+    
 
 @app.route("/AddHospital")
 def AddHospital():
@@ -106,7 +87,8 @@ def addform():
 def form():
     if request.method == "GET":
      parameters = request.args.getlist("name")
-     return render_template("form.html", par=parameters)
+     email=request.args.get("email")
+     return render_template("form.html", par=parameters,email=email)
 
 
     image=request.files.get("image")
@@ -118,6 +100,7 @@ def form():
     lname=request.form.get("lname","").strip()
     gender=request.form.get("gender","").strip()
     position=request.form.get("position","").strip()
+   
     
     validFname=re.compile(r'^[\w\u0600-\u06FF\s]{2,50}$')
     validLname=re.compile(r'^[\w\u0600-\u06FF\s]{2,50}$')
@@ -141,7 +124,7 @@ def form():
     if errors:
         # اگر اروری وجود داشت، دوباره فرم را با نمایش ارورها رندر کن
         parameters = request.form.getlist("hospitals_name")
-        return render_template("form.html", par=parameters, errors=errors)
+        return render_template("form.html", par=parameters, errors=errors,email=email)
     
     image.save(f'{upload_folder}/{image_name}')
     resume.save(f'{upload_folder}/{resume_name}')
@@ -153,29 +136,111 @@ def form():
         'پوزیشن انتخابی':position,
         "جنسیت":gender,
         "فایل رزومه":resume.filename,
-        "بیمارستانهای انتخابی":request.form.getlist("hospitals_name")
+        "بیمارستانهای انتخابی":request.form.getlist("hospitals_name"),
+        "ایمیل":request.form.get("email")
     }
     collection2.insert_one(document2)
+
     return render_template('form.html', send=True)
 
-@app.route("/login")
+@app.route("/login", methods=['POST'])
 def login():
-   pass
+   email=request.form.get('email','').strip()
+   password=request.form.get('password','').strip()
+   user=collection4.find_one({"ایمیل":email})
+  
+   resumes=[]
+   for resume in collection2.find({"ایمیل":email}):
+      resumes.append(resume)
 
+   errors=[]
+   document=collection3.find({}, {"_id": 0, "نام بیمارستان": 1})
+   hospitals=[]
+   for hospital in document:
+       hospitals.append(hospital["نام بیمارستان"])
+
+   if user:
+      if password == user.get("رمز عبور"):
+            return render_template("user.html", information=user ,hospitals=hospitals ,email=email ,resumes=resumes)
+      else:
+            errors.append("رمز عبور نادرست است")
+   else:
+        errors.append("حساب کاربری با این ایمیل یافت نشد")
+
+   if errors:
+      return render_template("login.html",errors=errors)
+   
 @app.route("/loginpage")
 def loginpage():
    return render_template("login.html")
 
-@app.route("/register")
+@app.route("/register",  methods=["POST"])
 def register():
    user_ip=request.remote_addr
+   email=request.form.get('email','').strip()
+   fullname=request.form.get('fullname','').strip()
+   password=request.form.get('password','').strip()
+
+   validname=re.compile(r'^[\w\u0600-\u06FF\s]{2,50}$')
+   validemail=re.compile(r'^[\w\.-]+@[\w\.-]+\.\w+$')
+   validpassword=re.compile(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$')
+   errors=[]
+   if not email or not password or not fullname:
+      errors.append("پر کردن تمام فیلدها الزامیست")
+
+   if not validemail.match(email) and email:
+      errors.append("ایمیل وارد شده نا معتبر است")
+   
+   if not validname.match(fullname) and fullname:
+      errors.append("نام وارد شده نامعتبر است")
+
+   if not validpassword.match(password) and password:
+      errors.append("رمز عبور تنظیم شده نامعتبر است")
+
+   if email in collection4.find({}, {"_id": 0, "ایمیل": 1}):
+      errors.append("شما قبلا با این ایمیل ثبت نام کرده اید")
+
+   if errors:
+      return render_template("register.html",errors=errors)
+   
+   
    document4={
-      'ip':user_ip
+      'ip':user_ip,
+       'نام و نام خانوادگی':fullname,
+       'ایمیل':email,
+       'رمز عبور':password
    }
    collection4.insert_one(document4)
-   return redirect("/registerpage")
+
+   return render_template("register.html",send=True)
+
 @app.route("/registerpage")
 def registerpage():
    return render_template("/register.html")
+
+@app.route('/userpage',methods=['POST'])
+def userpage():
+   email=request.form.get("email")
+   hospitals_name = request.form.getlist("HospitalsName")     
+   hospitals_name_slug=[name.replace(' ', '-') for name in hospitals_name]
+   query_params = "&".join([f"name={name}" for name in hospitals_name_slug])
+   query_params2=f"&email={email}"
+   document1 = {
+        "hospitals_name": hospitals_name,
+        'sluge_name':hospitals_name_slug
+    }
+
+   collection1.insert_one(document1)
+
+   user=collection4.find_one({"ایمیل":email})   
+
+   error=[]
+   if not hospitals_name:
+       error.append("لطفا بیمارستان مورد نظر برای ارسال رزومه را انتخاب کنید")
+   if error:
+       return render_template("user.html", error=error , information=user)
+   
+   return redirect(f"/form?{query_params}{query_params2}")
+
 if __name__=="__main__":
     app.run(debug=True)

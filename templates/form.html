@@ -7,6 +7,16 @@
     </head>
     <body dir="rtl">
       <div>
+         {% if send %}
+    <b class="_box">با موفقیت ارسال شد</b>
+{% endif %}
+  {% if errors %}
+            <ul class="error_box">
+                {% for error in errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
   <ul>
      <span>فرم ارسال رزومه به:</span>
     {% for name in par %}
@@ -17,6 +27,7 @@
       {% for name in par %}
         <input type="hidden" name="hospitals_name" value="{{ name }}">
     {% endfor %}
+        <input type="hidden" name="email" value="{{ email }}">
         <label for="name">نام:</label>
         <input type="text" id="name" name="fname"><hr>
         <label for="fname">نام خانوادگی:</label>
@@ -37,16 +48,6 @@
         <label for="fmale">مرد</label><hr>
         <input type="submit" value="ارسال">
     </form>
-      {% if send %}
-    <p style="color: green;">با موفقیت ارسال شد</p>
-{% endif %}
-  {% if errors %}
-            <ul class="error_box">
-                {% for error in errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
 
 </div>
     </body>

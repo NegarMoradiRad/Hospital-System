@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+    <head>
+<title>صفحه کاربری</title>
+<meta charset="utf-8">
+ <link rel="stylesheet" href="/static/style.css">
+    </head>
+    <body dir="rtl">
+        <header>
+            <h1>{%if information%}
+                 سلام {{information.get("نام و نام خانوادگی")}} خوش آمدی!
+            </h1>
+            <h2>
+             ایمیل:{{information.get("ایمیل")}}
+            </h2>
+            {%endif%}
+             <nav>
+                <h3 class="_box">رزومه های ارسالی:</h3>
+             {%if resumes%}
+             {%for resume in resumes%}
+        <ul>
+            <li>پوزیشن انتخابی:{{resume.get('پوزیشن انتخابی')}}</li>
+            <li>بیمارستان های انتخابی:{{resume.get('بیمارستانهای انتخابی')}}</li>
+            <li><a href="{{ url_for('static', filename='uplouds/' + resume.get('فایل رزومه')) }}" target="_blank">
+    مشاهده رزومه (PDF)
+</a>
+</li>
+        </ul>
+        {%endfor%}
+        {%endif%}
+        </nav>
+         <form action="{{url_for('homepage')}}" method="get">
+          <input type="submit" value="خروج"></form>
+        </header>
+        <main>
+        <div>
+             {%if error%}
+      <ul class="error_box">
+        {%for error in error%}
+        <li>{{error}}</li>
+        {%endfor%}
+      </ul>
+      {%endif%}
+            <h1 style="text-align: center;">سیستم ارسال و درخواست ثبت رزومه و بیمارستان</h1>
+            <h1>{{email}}</h1>
+    <form  method="post" action="{{url_for('userpage')}}">
+        <select id="hospitals" name="HospitalsName" multiple>
+          <option value="بیمارستان طالقانی">بیمارستان طالقانی</option>
+          <option value="بیمارستان لاله">بیمارستان لاله</option>
+          <option value="بیمارستان ابن سینا">بیمارستان ابن سینا</option>
+          <option value="بیمارستان رازی">بیمارستان رازی</option>
+          {%if hospitals%}
+          {%for hos in hospitals%}
+          <option value="{{hos}}">{{hos}}</option>
+          {%endfor%}
+          {%endif%}
+        </select>
+        <input type="hidden" name="email" value="{{ email }}">
+        <input type="submit" value="ارسال رزومه"/>
+        </form>
+        </div>
+       </main>
+    </body>
+</html>
