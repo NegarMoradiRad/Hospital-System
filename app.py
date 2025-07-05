@@ -1,6 +1,7 @@
 from flask import Flask,url_for,render_template,request,redirect
 from pymongo import MongoClient
 import re
+import bcrypt
 
 client=MongoClient("mongodb://localhost:27017/")
 db=client["hospitals_resumes"]
@@ -160,7 +161,7 @@ def login():
        hospitals.append(hospital["نام بیمارستان"])
 
    if user:
-      if password == user.get("رمز عبور"):
+      if bcrypt.checkpw(password.encode('utf-8'), user["رمز عبور"]):
             return render_template("user.html", information=user ,hospitals=hospitals ,email=email ,resumes=resumes)
       else:
             errors.append("رمز عبور نادرست است")
@@ -180,6 +181,7 @@ def register():
    email=request.form.get('email','').strip()
    fullname=request.form.get('fullname','').strip()
    password=request.form.get('password','').strip()
+   hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
    validname=re.compile(r'^[\w\u0600-\u06FF\s]{2,50}$')
    validemail=re.compile(r'^[\w\.-]+@[\w\.-]+\.\w+$')
@@ -208,7 +210,7 @@ def register():
       'ip':user_ip,
        'نام و نام خانوادگی':fullname,
        'ایمیل':email,
-       'رمز عبور':password
+       'رمز عبور':hashed
    }
    collection4.insert_one(document4)
 
