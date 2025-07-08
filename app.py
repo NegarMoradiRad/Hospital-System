@@ -160,7 +160,10 @@ def login():
    for hospital in document:
        hospitals.append(hospital["نام بیمارستان"])
 
-   if user:
+   if not email or not password:
+      errors.append("پر کردن تمام فیلدها الزامی است")
+
+   elif user:
       if bcrypt.checkpw(password.encode('utf-8'), user["رمز عبور"]):
             return render_template("user.html", information=user ,hospitals=hospitals ,email=email ,resumes=resumes)
       else:
@@ -199,7 +202,7 @@ def register():
    if not validpassword.match(password) and password:
       errors.append("رمز عبور تنظیم شده نامعتبر است")
 
-   if email in collection4.find({}, {"_id": 0, "ایمیل": 1}):
+   if collection4.find_one({"ایمیل": email}):
       errors.append("شما قبلا با این ایمیل ثبت نام کرده اید")
 
    if errors:
@@ -243,6 +246,32 @@ def userpage():
        return render_template("user.html", error=error , information=user)
    
    return redirect(f"/form?{query_params}{query_params2}")
+@app.route('/profile',methods=['POST'])
+def profile():
+   profile=request.files.get('profile')
+   email=request.form.get("email")
+   user=collection4.find_one({"ایمیل":email})
+   wrong=[]
+   profile_name=profile.filename
+   resumes=[]
+   for resume in collection2.find({"ایمیل":email}):
+      resumes.append(resume)
+   
+   if not profile:
+      wrong.append("هیچ تصویری وارد نشده است")
+   elif is_safe_image(profile_name):
+       wrong.append("فرمت تصویر وارد شده نامعتبر است")
+
+   if wrong:
+      return render_template("user.html", wrong=wrong, information=user, resumes=resumes, email=email)
+   
+   profile.save(f'{upload_folder}/{profile_name}')
+   collection4.update_one(
+        {"ایمیل": email},
+        {"$set": {"پروفایل": profile_name}}
+    )
+   user = collection4.find_one({"ایمیل": email})
+   return render_template('user.html', send=True, information=user, resumes=resumes, email=email)
 
 if __name__=="__main__":
     app.run(debug=True)

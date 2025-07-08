@@ -6,15 +6,33 @@
  <link rel="stylesheet" href="/static/style.css">
     </head>
     <body dir="rtl">
-        <header>
-            <h1>{%if information%}
-                 سلام {{information.get("نام و نام خانوادگی")}} خوش آمدی!
-            </h1>
+        <div>
+            {%if information%}
+                 {%if information.get("پروفایل")%}
+                 <img src="{{ url_for('static', filename='uplouds/' + information.get('پروفایل')) }}" width="150" class="profile">
+            {%endif%}
+            <section class="dropdown">
+              <button>افزودن پروفایل</button>
+              <main class="dropdown-content">
+              <form action="{{url_for('profile')}}" method="post" enctype="multipart/form-data" display="inline">
+                <input type="file"  name="profile">
+                <input type="hidden" name="email" value="{{email}}">
+                <input type="submit" value="افزودن پروفایل+">
+              </form>
+            </main>
+            </section>
+            <h1>سلام {{information.get("نام و نام خانوادگی")}} خوش آمدی!</h1>
             <h2>
-             ایمیل:{{information.get("ایمیل")}}
+             ایمیل:{{email}}
             </h2>
             {%endif%}
              <nav>
+               {%if wrong%}
+              <p class="error_box">{{wrong}}</p>
+              {%endif%}
+              {%if send%}
+              <p class="_box">با موفقیت اضافه شد</p>
+             {%endif%}
                 <h3 class="_box">رزومه های ارسالی:</h3>
              {%if resumes%}
              {%for resume in resumes%}
@@ -31,8 +49,8 @@
         </nav>
          <form action="{{url_for('homepage')}}" method="get">
           <input type="submit" value="خروج"></form>
-        </header>
-        <main>
+         </div>
+        
         <div>
              {%if error%}
       <ul class="error_box">
@@ -59,6 +77,6 @@
         <input type="submit" value="ارسال رزومه"/>
         </form>
         </div>
-       </main>
+       
     </body>
 </html>
