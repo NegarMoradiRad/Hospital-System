@@ -1,7 +1,8 @@
-from flask import Flask,url_for,render_template,request,redirect
+from flask import Flask,url_for,render_template,request,redirect,session
 from pymongo import MongoClient
 import re
 import bcrypt
+from datetime import timedelta
 
 client=MongoClient("mongodb://localhost:27017/")
 db=client["hospitals_resumes"]
@@ -11,7 +12,7 @@ collection3=db["hospitals"]
 collection4=db["users"]
 
 app=Flask(__name__)
-
+app.secret_key='my_secret key'
 upload_folder = "static/uplouds" 
 app.config["UPLOAD_FOLDER"] = upload_folder
 
@@ -88,7 +89,7 @@ def addform():
 def form():
     if request.method == "GET":
      parameters = request.args.getlist("name")
-     email=request.args.get("email")
+     email=session['user']
      return render_template("form.html", par=parameters,email=email)
 
 
@@ -143,9 +144,18 @@ def form():
     collection2.insert_one(document2)
 
     return render_template('form.html', send=True)
+@app.route('/checksession')
+def checksession():
+   if 'user' not in session:
+      return redirect(url_for('login'))
+   return redirect(url_for('userpage'))
 
-@app.route("/login", methods=['POST'])
+@app.route("/login", methods=['POST','GET'])
 def login():
+   if request.method=='GET':
+         return render_template('login.html')
+      
+      
    email=request.form.get('email','').strip()
    password=request.form.get('password','').strip()
    user=collection4.find_one({"ایمیل":email})
@@ -165,7 +175,8 @@ def login():
 
    elif user:
       if bcrypt.checkpw(password.encode('utf-8'), user["رمز عبور"]):
-            return render_template("user.html", information=user ,hospitals=hospitals ,email=email ,resumes=resumes)
+            session['user']=email
+            return redirect(url_for('userpage'))
       else:
             errors.append("رمز عبور نادرست است")
    else:
@@ -174,10 +185,6 @@ def login():
    if errors:
       return render_template("login.html",errors=errors)
    
-@app.route("/loginpage")
-def loginpage():
-   return render_template("login.html")
-
 @app.route("/register",  methods=["POST"])
 def register():
    user_ip=request.remote_addr
@@ -223,13 +230,21 @@ def register():
 def registerpage():
    return render_template("/register.html")
 
-@app.route('/userpage',methods=['POST'])
+@app.route('/userpage',methods=['POST','GET'])
 def userpage():
-   email=request.form.get("email")
+   if 'user' not in session:
+        return redirect(url_for('login'))  # یا نمایش پیغام خطا
+    
+   email = session['user']
+   if request.method == 'GET':
+        user = collection4.find_one({'ایمیل': email})
+        resumes=list(collection2.find({'ایمیل':email}))
+        return render_template("user.html", information=user,resumes=resumes)
+   email=session['user']
+   resumes=list(collection2.find({'ایمیل':email}))
    hospitals_name = request.form.getlist("HospitalsName")     
    hospitals_name_slug=[name.replace(' ', '-') for name in hospitals_name]
    query_params = "&".join([f"name={name}" for name in hospitals_name_slug])
-   query_params2=f"&email={email}"
    document1 = {
         "hospitals_name": hospitals_name,
         'sluge_name':hospitals_name_slug
@@ -243,9 +258,9 @@ def userpage():
    if not hospitals_name:
        error.append("لطفا بیمارستان مورد نظر برای ارسال رزومه را انتخاب کنید")
    if error:
-       return render_template("user.html", error=error , information=user)
+       return render_template("user.html", error=error , information=user,resumes=resumes)
    
-   return redirect(f"/form?{query_params}{query_params2}")
+   return redirect(f"/form?{query_params}")
 @app.route('/profile',methods=['POST'])
 def profile():
    profile=request.files.get('profile')
@@ -272,6 +287,9 @@ def profile():
     )
    user = collection4.find_one({"ایمیل": email})
    return render_template('user.html', send=True, information=user, resumes=resumes, email=email)
-
+@app.route('/logout')
+def logout():
+   session.pop('user', None)
+   return redirect(url_for('homepage'))
 if __name__=="__main__":
     app.run(debug=True)
